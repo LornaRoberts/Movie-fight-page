@@ -1,6 +1,4 @@
-createAutoComplete({
-  //where to place the autocomplete
-root: document.querySelector('.autocomplete'),
+const autoCompleteConfig = {
 //how it should look inside
 renderOption(movie){
   const imgSrc = movie.Poster === 'N/A' ? '': movie.Poster;
@@ -8,10 +6,6 @@ renderOption(movie){
   <img src="${imgSrc}" />
   ${movie.Title} (${movie.Year})
   `;
-},
-//what to do when clicked
-onOptionSelect(movie){
-  onMovieSelect(movie);
 },
 //what to backfill inside
 inputValue(movie){
@@ -31,24 +25,67 @@ async fetchData(searchTerm) {
 
   return response.data.Search;
   }
-  
+};
+
+createAutoComplete({
+  //where to place the autocomplete
+  ...autoCompleteConfig, 
+root: document.querySelector('#left-autocomplete'),
+//what to do when clicked
+onOptionSelect(movie){
+  document.querySelector('.tutorial').classList.add('is-hidden');
+  onMovieSelect(movie, document.querySelector('#left-summary'), 'left');
+}
 });
 
+createAutoComplete({
+  //where to place the autocomplete
+  ...autoCompleteConfig, 
+root: document.querySelector('#right-autocomplete'),
+//what to do when clicked
+onOptionSelect(movie){
+  document.querySelector('.tutorial').classList.add('is-hidden');
+  onMovieSelect(movie, document.querySelector('#right-summary'), 'right');
+}
+});
 
+let leftMovie;
+let rightMovie;
 //follow up request for the selected movie
-const onMovieSelect = async movie => {
+const onMovieSelect = async (movie, summaryElement, side) => {
   const response = await axios.get('http://www.omdbapi.com/', {
     params: {
         apikey: 'b8f5924b',
         i: movie.imdbID
     }
   });
-    document.querySelector('#summary').innerHTML = movieTemplate(response.data);
+    summaryElement.innerHTML = movieTemplate(response.data);
+
+    if (side === 'left'){
+      leftMovie === response.data;
+    }else {
+      rightMovie === response.data;
+    }
+
+    if (leftMovie && rightMovie){
+      runComparison();
+    }
+};
+
+const runComparison = () => {
+//run the first article element for each movie
+//run a comparison of the number of awards
+//then run some styling to that 'article' award
+
 };
 
 //movie info shown on screen
 
 const movieTemplate = (movieDetail) =>{
+  const dollars = parseInt(movieDetail.BoxOffice.replace(/\$/g, '').replace(/,/g, ''));
+  const metascore = parseInt(movieDetail.Metascore);
+  const imdbRating = parseFloat(movieDetail.imdbRating);
+  const imdbVotes = parseInt(movieDetail.imdbVotes.replace(/,/g, ''));
 return  `
   <article class="media">
     <figure class="media-left">
